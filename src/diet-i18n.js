@@ -70,16 +70,12 @@
         var phrase = attributes.registry[path] || (expressions ? expressions.__default__ : null);
 
         if (phrase != null && phrase.constructor === String) {
-            phrase = phrase.replace(attributes.expression, function(expression, property) {
-                return expressions[property] || '';
-            });
-            phrase = pluralize(phrase, expressions);
-
+            return pluralize(phrase.replace(attributes.expression, function(expression, property) {
+                return expressions[trim(property)] || '';
+            }), expressions);
         } else {
-            phrase = null;
+            return attributes.allowVoid ? '' : attributes.defaultText + path;
         }
-
-        return phrase || (attributes.allowVoid ? '' : attributes.defaultText + path);
     }
 
     i18n.extend = function(phrases, prefix) {

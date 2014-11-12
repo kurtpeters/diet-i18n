@@ -16,6 +16,9 @@ describe('i18n', function() {
         var phrase = {"test": "this is a mocha %{expression}"};
         i18n.extend(phrase);
         expect(i18n('test', {"expression": 'test'})).to.equal('this is a mocha test');
+        var phrase = {"test": "this is a mocha %{ expression }"};
+        i18n.extend(phrase);
+        expect(i18n('test', {"expression": 'test'})).to.equal('this is a mocha test');
         phrase = {"test": "this is a %{thing} %{expression}"};
         i18n.extend(phrase);
         expect(i18n('test', {"expression": 'practice', "thing": 'TDD'})).to.equal('this is a TDD practice');
