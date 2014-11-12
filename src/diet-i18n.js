@@ -1,40 +1,22 @@
 (function(root) {
     'use strict';
 
-    var attributes = {},
-        pluralizationRule,
-        variants;
-
-    variants = { // l: locales; r: rule
-        "zh": { // chinese
-            "l": ['fa', 'id', 'ja', 'ko', 'lo', 'ms', 'th', 'tr', 'zh'],
-            "r": function(n) { return 0; }
-        },
-        "de": { // german
-            "l": ['da', 'de', 'en', 'es', 'fi', 'gb', 'el', 'he', 'hu', 'it', 'nl', 'no', 'pt', 'sv', 'uk'],
-            "r": function(n) { return n !== 1 ? 1 : 0; }
-        },
-        "fr": { // french
-            "l": ['fr', 'tl', 'pt-br'],
-            "r": function(n) { return n > 1 ? 1 : 0; }
-        },
-        "ru": { // russian
-            "l": ['hr', 'ru'],
-            "r": function(n) { return n % 10 === 1 && n % 100 !== 11 ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2; }
-        },
-        "cs": { // czech
-            "l": ['cs'],
-            "r": function(n) { return (n === 1) ? 0 : (n >= 2 && n <= 4) ? 1 : 2; }
-        },
-        "pl": { // polish
-            "l": ['pl'],
-            "r": function(n) { return (n === 1 ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2); }
-        },
-        "is": { // icelandic
-            "l": ['is'],
-            "r": function(n) { return (n % 10 !== 1 || n % 100 === 11) ? 1 : 0; }
-        }
-    };
+    var attributes = {}, variants = [
+        // icelandic
+        [function(n) { return (n % 10 !== 1 || n % 100 === 11) ? 1 : 0; }, 'is'],
+        // polish
+        [function(n) { return (n === 1 ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2); }, 'pl'],
+        // czech
+        [function(n) { return (n === 1) ? 0 : (n >= 2 && n <= 4) ? 1 : 2; }, 'cs'],
+        // russian
+        [function(n) { return n % 10 === 1 && n % 100 !== 11 ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2; }, 'hr', 'ru'],
+        // french
+        [function(n) { return n > 1 ? 1 : 0; }, 'fr', 'tl', 'pt-br'],
+        // german
+        [function(n) { return n !== 1 ? 1 : 0; }, 'da', 'de', 'en', 'es', 'fi', 'gb', 'el', 'he', 'hu', 'it', 'nl', 'no', 'pt', 'sv', 'uk'],
+        // chinese
+        [function(n) { return 0; }, 'fa', 'id', 'ja', 'ko', 'lo', 'ms', 'th', 'tr', 'zh']
+    ];
 
     function trim(phrase) {
         var regExp = /^\s+|\s+$/g;
@@ -44,15 +26,16 @@
     function setPluralizationRule() {
 
         var locale = attributes.locale,
-            variant,
-            index;
+            codes,
+            index,
+            variant;
 
-        for (variant in variants) {
-            variant = variants[variant];
-            index = variant.l.length;
+        for (variant = variants.length - 1; variant; variant--) {
+            codes = variants[variant].slice(1);
+            index = codes.length;
             while (index--) {
-                if (variant.l[index] === locale) {
-                    pluralizationRule = variant.r;
+                if (codes[index] === locale) {
+                    attributes.pluralizationRule = variants[variant][0];
                     return;
                 }
             }
@@ -76,7 +59,7 @@
                 }
             }
 
-            phrase = phrase[pluralizationRule(rule || 0)];
+            phrase = phrase[attributes.pluralizationRule(rule || 0)];
         }
 
         return trim(phrase);
@@ -123,9 +106,10 @@
 
         for (var property in properties) {
             attributes[property] = properties[property];
-            if (property === 'locale') {
-                setPluralizationRule();
-            }
+        }
+
+        if (properties.locale !== void 0) {
+            setPluralizationRule();
         }
 
         return this;
